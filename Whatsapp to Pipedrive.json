@@ -1,0 +1,660 @@
+{
+  "name": "Whatsapp to Pipedrive",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1376,
+        192
+      ],
+      "id": "3777d6bf-c88a-4247-8499-1c014b9893a4",
+      "name": "WhatsApp Trigger",
+      "webhookId": "39c61fed-3146-48aa-b7b2-00ec19556250",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "X92m6xJysrYZgwAn",
+          "name": "Pipedrive Recieve Message"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "789597447561674",
+        "recipientPhoneNumber": "=923135776308",
+        "textBody": "Thanks For Contacting. WIll contact you soon!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        544,
+        688
+      ],
+      "id": "5d6b9d87-6b20-4308-a92c-c8d58d8d3cc2",
+      "name": "Send message",
+      "webhookId": "07e3f3a5-a23b-4ac1-a486-68a1073ad9c9",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "19QVNE93lXndmUcT",
+          "name": "WhatsApp account pipedrive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1056,
+        192
+      ],
+      "id": "707cd1ac-d166-4164-bb5c-5cb4066d863e",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "k8YHKj3T8fVv5BYj",
+          "name": "Pipedrive header auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].image.id }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        -1216,
+        192
+      ],
+      "id": "13d75716-4703-4e98-ac23-c71245322a6f",
+      "name": "Download media",
+      "webhookId": "2003cded-afbc-4f96-8844-01cd8e347929",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "19QVNE93lXndmUcT",
+          "name": "WhatsApp account pipedrive"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "You are a Business Card OCR and multilingual data parser.\n\nYour job is to extract structured information from business card images written in ANY language (English, German, French, Chinese, Arabic, etc.).\n\nExtract the following fields:\n\n- Full Name\n- Designation / Job Title\n- Company Name\n- Email(s)\n- Phone Number(s)\n- Website(s)\n- Address(es)\n\nIMPORTANT INSTRUCTIONS FOR COMPANY NAME:\n1. First, look for any explicit company name, logo text, or organization name on the card (in any language).\n2. If NO company name is visible on the card, extract it from the email domain using these rules:\n   - Remove common prefixes: www, mail, info, contact, support\n   - Remove top-level domains: .com, .org, .net, .co.uk, .io, etc.\n   - Convert to proper case (capitalize first letter of each word)\n   - Replace common abbreviations with full words where obvious\n   - Examples:\n     * zeeshan@optimallogics.com → \"Optimal Logics\"\n     * john@techsolutions.net → \"Tech Solutions\"\n     * mary@innovatedesign.io → \"Innovate Design\"\n     * kontakt@abcmarketing.de → \"ABC Marketing\"\n3. If email domain is generic (gmail.com, yahoo.com, outlook.com, hotmail.com, etc.), leave \"company_name\" as empty string.\n4. If no email is found, leave \"company_name\" as empty string.\n\nIMPORTANT INSTRUCTIONS FOR WEBSITE(S):\n1. First, extract any explicit website(s) written on the card (any language, any format).\n2. If NO website is visible, derive it from the email domain:\n   - Use the domain part of the email.\n   - Ensure proper URL format: prepend with \"www.\" if not already.\n   - Example:\n     * zeeshan@optimallogics.com → \"www.optimallogics.com\"\n     * john@techsolutions.net → \"www.techsolutions.net\"\n     * maria@innovativedesign.de → \"www.innovativedesign.de\"\n3. If email domain is generic (gmail.com, yahoo.com, outlook.com, hotmail.com, etc.), leave \"websites\": [].\n4. If no email is found, leave \"websites\": [].\n\nRESPONSE FORMAT:\nAlways respond in **pure JSON** using this schema:\n\n{\n  \"full_name\": \"\",\n  \"designation\": \"\",\n  \"company_name\": \"\",\n  \"emails\": [],\n  \"phone_numbers\": [],\n  \"websites\": [],\n  \"addresses\": []\n}\n\nRULES:\n- Output must always be valid JSON (no explanations, no extra text).\n- If a field is missing, return empty string \"\" or [].\n- Support multilingual cards: names, designations, addresses, and company names may appear in non-English languages but must be extracted as-is.\n- Normalize phone numbers to international format if possible.\n",
+        "inputType": "base64",
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -912,
+        192
+      ],
+      "id": "9806793d-2603-4663-b4ca-d1142321e8db",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "che9u5mbNbTT5Saf",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const raw = $json[\"choices\"][0][\"message\"][\"content\"];\nconst jsonText = raw.match(/```json([\\s\\S]*?)```/)?.[1]?.trim();\n\nif (!jsonText) {\n  throw new Error(\"Could not extract JSON from OpenAI output\");\n}\n\nconst parsed = JSON.parse(jsonText);\n\nreturn {\n  json: parsed\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        640
+      ],
+      "id": "7ccd937a-ed2d-48ec-9195-631535c33943",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "resource": "person",
+        "name": "={{ $('Code').item.json.full_name }}",
+        "additionalFields": {
+          "email": [
+            "={{ $('Code').item.json.emails[0] }}"
+          ],
+          "org_id": "={{ $json.id }}",
+          "phone": [
+            "={{ $('Code').item.json.phone_numbers[0] }}",
+            "={{ $('Code').item.json.phone_numbers[1] }}"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.pipedrive",
+      "typeVersion": 1,
+      "position": [
+        192,
+        128
+      ],
+      "id": "1934d9e0-dd8e-4180-8d12-43901ae7a5b2",
+      "name": "Create a person",
+      "alwaysOutputData": false,
+      "credentials": {
+        "pipedriveApi": {
+          "id": "E6wLq3o1huRCuXo5",
+          "name": "Pipedrive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "lead",
+        "title": "={{ $json.name }}",
+        "associateWith": "person",
+        "person_id": "={{ $json.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.pipedrive",
+      "typeVersion": 1,
+      "position": [
+        544,
+        224
+      ],
+      "id": "b129bf86-294d-49fc-81b5-ca959b9ec257",
+      "name": "Create a lead",
+      "credentials": {
+        "pipedriveApi": {
+          "id": "E6wLq3o1huRCuXo5",
+          "name": "Pipedrive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "organization",
+        "name": "={{ $('Code').item.json.company_name }}",
+        "additionalFields": {
+          "customProperties": {
+            "property": [
+              {
+                "name": "address",
+                "value": "={{ $('Code').item.json.addresses[0] }}"
+              },
+              {
+                "name": "website",
+                "value": "={{ $('Code').item.json.websites[0] }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.pipedrive",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        592
+      ],
+      "id": "4634d498-b16f-4f0b-bad1-3e31d22c6f2d",
+      "name": "Create an organization",
+      "credentials": {
+        "pipedriveApi": {
+          "id": "E6wLq3o1huRCuXo5",
+          "name": "Pipedrive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d3393b76-8d15-4e67-b8a5-a5605b70cea0",
+              "leftValue": "={{ $json.item.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        112
+      ],
+      "id": "ac00d0d5-e622-4887-80ce-ae5ea7b02e62",
+      "name": "If",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "resource": "person",
+        "name": "={{ $('Code').item.json.full_name }}",
+        "additionalFields": {
+          "email": [
+            "={{ $('Code').item.json.emails[0] }}"
+          ],
+          "org_id": "={{ $json.id }}",
+          "phone": [
+            "={{ $('Code').item.json.phone_numbers[0] }}",
+            "={{ $('Code').item.json.phone_numbers[1] }}"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.pipedrive",
+      "typeVersion": 1,
+      "position": [
+        112,
+        592
+      ],
+      "id": "a260e34c-e9bf-419a-b70b-97bb36e5bb31",
+      "name": "Create a person1",
+      "credentials": {
+        "pipedriveApi": {
+          "id": "E6wLq3o1huRCuXo5",
+          "name": "Pipedrive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -512,
+        608
+      ],
+      "id": "c5b5d290-26c1-4b15-a89d-326686dc5ed6",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "## Receive WhatsApp message + media, download and analyze image",
+        "height": 256,
+        "width": 688
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1440,
+        80
+      ],
+      "id": "4cf1a556-9001-43b2-a9c4-bd7848b95393",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Extract fields (org name, person info, etc.) from AI analysis",
+        "height": 224,
+        "width": 432,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        544
+      ],
+      "id": "9bc58d1a-e30c-4b5c-8d1d-1b5a20335a85",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Check if organization already exists",
+        "width": 496,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        64
+      ],
+      "id": "24ecc044-4e20-4336-9ff6-d2f6f8ee7e6a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Org exists →Update Organization and create person directly",
+        "height": 256,
+        "width": 320,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "98e08e9a-eab7-434e-ba29-e7d1997787ed",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Org doesn’t exist → create organization first, then person",
+        "height": 224,
+        "width": 416,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        496
+      ],
+      "id": "492064df-2f39-463a-93bb-0433e7291edb",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## To get input of previous node in case of false branch",
+        "height": 224,
+        "width": 368,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        528
+      ],
+      "id": "41b084fa-50bf-4e31-8def-ed7fd847ee04",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Send Thankyou message back to the user",
+        "height": 240,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        448,
+        560
+      ],
+      "id": "389e2913-ed3d-4f1d-a2da-84f09a945bac",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Create Lead",
+        "height": 208,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        448,
+        160
+      ],
+      "id": "871b14fe-4219-47ec-bf5e-938cc1a94bf5",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "resource": "organization",
+        "operation": "search",
+        "returnAll": true,
+        "term": "={{ $json.company_name }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.pipedrive",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        112
+      ],
+      "id": "70c056b8-0cdb-440d-bd84-a01217151a12",
+      "name": "Search an organization",
+      "alwaysOutputData": true,
+      "credentials": {
+        "pipedriveApi": {
+          "id": "E6wLq3o1huRCuXo5",
+          "name": "Pipedrive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "organization",
+        "operation": "update",
+        "organizationId": "={{ $json.item.id }}",
+        "updateFields": {
+          "customProperties": {
+            "property": [
+              {
+                "name": "website",
+                "value": "={{ $('Code').item.json.websites[0] }}"
+              },
+              {
+                "name": "address",
+                "value": "={{ $('Code').item.json.addresses[0] }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.pipedrive",
+      "typeVersion": 1,
+      "position": [
+        32,
+        128
+      ],
+      "id": "eb8f2ec0-93b0-4bed-81b2-bd74bba34450",
+      "name": "Update an organization",
+      "credentials": {
+        "pipedriveApi": {
+          "id": "E6wLq3o1huRCuXo5",
+          "name": "Pipedrive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download media": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Search an organization",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Create a person": {
+      "main": [
+        [
+          {
+            "node": "Create a lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a lead": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an organization": {
+      "main": [
+        [
+          {
+            "node": "Create a person1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update an organization",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a person1": {
+      "main": [
+        [
+          {
+            "node": "Create a lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Create an organization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search an organization": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update an organization": {
+      "main": [
+        [
+          {
+            "node": "Create a person",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4fc2ded5-de0f-42b3-b871-9246adcca855",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6fe168f033e50cdabc808c7e9fbf0b9484d1749300fad4a5137cfae038345ed5"
+  },
+  "id": "RikXs0EEboZKGa9d",
+  "tags": []
+}
