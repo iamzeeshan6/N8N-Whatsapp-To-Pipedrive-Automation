@@ -1,3 +1,4 @@
+<img width="757" height="297" alt="Image" src="https://github.com/user-attachments/assets/04cfb39e-1bc3-4eb6-8ee0-7f16c06b3eaf" />
 # N8N-Whatsapp-To-Pipedrive-Automation
 An automation that converts business card images received on WhatsApp into structured leads in Pipedrive. It uses GPT to extract contact details, checks or creates organizations and people, creates a lead, and sends a thank-you message back on WhatsApp — fully automated.
 
